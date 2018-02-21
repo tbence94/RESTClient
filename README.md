@@ -9,7 +9,7 @@ Environment
 
 Running
 
-  1. Clone the repository: git clone https://github.com/pekmil/RESTServer.git
+  1. Clone the repository: git clone https://github.com/pekmil/RESTClient.git
   2. Run: mvn clean install
   3. Start generated JAR file (from the target directory):
      - REST client mode: java -jar RESTClient-1.0-SNAPSHOT-jar-with-dependencies.jar REST username
