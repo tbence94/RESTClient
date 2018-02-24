@@ -1,7 +1,6 @@
 package hu.pemik.dcs.restclient;
 
 /**
- *
  * @author pekmil
  */
 public class Todo {
@@ -10,7 +9,8 @@ public class Todo {
     private String description;
     private String userName;
 
-    public Todo(){}
+    public Todo() {
+    }
 
     public String getId() {
         return id;
@@ -43,5 +43,5 @@ public class Todo {
     public void setUserName(String userName) {
         this.userName = userName;
     }
-    
+
 }
