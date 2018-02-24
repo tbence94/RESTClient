@@ -96,7 +96,7 @@ public class ApplicationMain {
 
         String response = this.reverseStringEndpoint.resolveTemplate("stringToReverse", stringToReverse).request().get(new GenericType<String>() {
         });
-        System.out.println("RESULT: " + response);
+        System.out.println("Reversed string: " + response);
     }
 
     private void listTodos() {
