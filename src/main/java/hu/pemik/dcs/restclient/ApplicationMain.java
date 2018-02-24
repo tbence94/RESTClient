@@ -22,6 +22,7 @@ import java.util.Scanner;
 public class ApplicationMain {
 
     private Client client;
+    private WebTarget reverseStringEndpoint ;
     private WebTarget todosEndpoint;
     private WebTarget todoEndpoint;
     private WebTarget todoDeleteEndpoint;
@@ -31,16 +32,14 @@ public class ApplicationMain {
             ApplicationMain app = new ApplicationMain();
             String mode = args[0];
             switch (mode) {
-                case "REST":
-                    app.initRestClient(args[1]);
-                    app.startRepl();
-                    break;
                 case "WS":
                     WebSocketNotificationClient ws = new WebSocketNotificationClient();
                     ws.startWsClient();
                     break;
                 default:
-                    throw new IllegalArgumentException("Not supported application mode: " + mode);
+                    app.initRestClient(args[0]);
+                    app.startRepl();
+                    break;
             }
         } catch (Throwable t) {
             t.printStackTrace();
@@ -52,7 +51,10 @@ public class ApplicationMain {
                 .register(JsonObjectMapperProvider.class)
                 .register(JacksonFeature.class)
                 .build();
+
         AuthRequestFilter authFilter = new AuthRequestFilter(userName);
+
+        this.reverseStringEndpoint = client.target("http://localhost:33333/rest/string/reverse/{stringToReverse}").register(authFilter);
         this.todosEndpoint = client.target("http://localhost:33333/rest/todos/all").register(authFilter);
         this.todoEndpoint = client.target("http://localhost:33333/rest/todos/todo").register(authFilter);
         this.todoDeleteEndpoint = client.target("http://localhost:33333/rest/todos/todo/{id}").register(authFilter);
@@ -60,9 +62,9 @@ public class ApplicationMain {
 
     private void startRepl() { //Read|Evaluate|Print|Loop
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Todo menu:\n\t1. List all\n\t2. Create\n\t3. Update\n\t4. Delete\n\t5. Exit\nCommand: ");
+        System.out.print("Todo menu:\n\t1. List all\n\t2. Create\n\t3. Update\n\t4. Delete\n\t5. Reverse string\n\t6. Exit\nCommand: ");
         String input = scanner.nextLine();
-        while (!input.equals("5")) {
+        while (!input.equals("6")) {
             switch (input) {
                 case "1":
                     listTodos();
@@ -76,12 +78,25 @@ public class ApplicationMain {
                 case "4":
                     deleteTodo(scanner);
                     break;
+                case "5":
+                    reverseString(scanner);
+                    break;
                 default:
                     System.out.println("Unsupported operation: " + input);
             }
             System.out.print("Command: ");
             input = scanner.nextLine();
         }
+    }
+
+
+    private void reverseString(Scanner scanner) {
+        System.out.print("\tString to reverse: ");
+        String stringToReverse = scanner.nextLine();
+
+        String response = this.reverseStringEndpoint.resolveTemplate("stringToReverse", stringToReverse).request().get(new GenericType<String>() {
+        });
+        System.out.println("RESULT: " + response);
     }
 
     private void listTodos() {
@@ -169,7 +184,7 @@ public class ApplicationMain {
         @Override
         public void filter(ClientRequestContext crc) throws IOException {
             crc.getHeaders().put(HttpHeaders.AUTHORIZATION, Arrays.asList("token " + userName));
-            crc.getHeaders().put(HttpHeaders.ACCEPT, Arrays.asList("application/json"));
+            crc.getHeaders().put(HttpHeaders.ACCEPT, Arrays.asList("application/json", "text/plain"));
         }
     }
 
