@@ -129,7 +129,7 @@ public class ApplicationMain {
         System.out.print("\tDescription: ");
         String desc = scanner.nextLine();
         Todo todo = new Todo();
-        todo.setId(id);
+        todo.setId(Integer.parseInt(id));
         todo.setName(name);
         todo.setDescription(desc);
         todo.setUserName("pekmil");

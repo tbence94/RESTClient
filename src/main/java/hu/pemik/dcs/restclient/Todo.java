@@ -1,22 +1,26 @@
 package hu.pemik.dcs.restclient;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * @author pekmil
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Todo {
-    private String id;
-    private String name;
-    private String description;
-    private String userName;
+
+    public int id;
+    public String name;
+    public String description;
+    public String userName;
 
     public Todo() {
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -36,9 +40,7 @@ public class Todo {
         this.description = description;
     }
 
-    public String getUserName() {
-        return userName;
-    }
+    public String getUserName() { return userName; }
 
     public void setUserName(String userName) {
         this.userName = userName;
