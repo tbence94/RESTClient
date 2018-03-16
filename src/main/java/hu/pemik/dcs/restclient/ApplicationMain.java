@@ -16,9 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * @author pekmil
- */
 public class ApplicationMain {
 
     private Client client;

@@ -8,9 +8,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
 
-/**
- * @author pekmil
- */
 @ClientEndpoint
 public class WebSocketNotificationClient {
 

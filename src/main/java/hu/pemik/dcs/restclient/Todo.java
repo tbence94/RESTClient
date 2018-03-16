@@ -2,9 +2,6 @@ package hu.pemik.dcs.restclient;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/**
- * @author pekmil
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Todo {
 
