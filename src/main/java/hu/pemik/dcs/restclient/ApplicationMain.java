@@ -9,6 +9,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -40,7 +41,11 @@ public class ApplicationMain {
     }
 
     private Builder request(String url) {
-        return client.target(Config.REST_SERVER_URL + url).register(authFilter).request(MediaType.APPLICATION_JSON);
+        return target(url).request(MediaType.APPLICATION_JSON);
+    }
+
+    private WebTarget target(String url) {
+        return client.target(Config.REST_SERVER_URL + url).register(authFilter);
     }
 
     private void start() {
@@ -55,7 +60,7 @@ public class ApplicationMain {
                     storeProduct();
                     break;
                 case "3":
-                    storeProduct();
+                    takeProduct();
                     break;
                 default:
                     System.out.println("Unsupported action: " + action);
@@ -89,6 +94,17 @@ public class ApplicationMain {
      * ======================================================================
      */
 
+    private void listProducts() {
+        List<Product> products = request("products/all").get(new GenericType<List<Product>>() {});
+
+        if(products.size() == 0){
+            Console.info("No results found.");
+            return;
+        }
+
+        products.stream().forEach(product -> System.out.println(product));
+    }
+
     private void storeProduct() {
         String name = Console.getInput("Name: ");
         String description = Console.getInput("Description: ");
@@ -108,10 +124,18 @@ public class ApplicationMain {
         Console.info("Success");
     }
 
+    private void takeProduct() {
+        int productId = Console.getIntInput("Product ID: ");
 
-    private void listProducts() {
-        List<Product> products = request("products/all").get(new GenericType<List<Product>>() {});
-        products.stream().forEach(product -> System.out.println(product));
+        Response response = target("products/product/{id}").resolveTemplate("id", productId).request(MediaType.APPLICATION_JSON).delete();
+
+        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+            Console.action("Failed to remove product");
+            System.out.print(response.toString());
+            return;
+        }
+
+        Console.info("Success");
     }
 
 }

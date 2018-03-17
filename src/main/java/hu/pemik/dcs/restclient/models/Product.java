@@ -89,7 +89,7 @@ public class Product extends Model {
     public String toString() {
         String result = "";
 
-        result += "\n" + Console.infoString(name) + "\n";
+        result += "\n" + Console.numberString("#" + id) + " - " + Console.infoString(name) + "\n";
         result += Console.lineString() + "\n";
         result += "Quantity:    " + Console.numberString(quantity) + "\n";
         result += "Cooled:      " + Console.highlightString((cooled) ? "Yes" : "No") + "\n";
