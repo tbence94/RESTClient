@@ -97,12 +97,12 @@ public class ApplicationMain {
     private void listProducts() {
         List<Product> products = request("products/all").get(new GenericType<List<Product>>() {});
 
-        if(products.size() == 0){
+        if (products.size() == 0) {
             Console.info("No results found.");
             return;
         }
 
-        products.stream().forEach(product -> System.out.println(product));
+        products.forEach(System.out::println);
     }
 
     private void storeProduct() {
@@ -127,7 +127,10 @@ public class ApplicationMain {
     private void takeProduct() {
         int productId = Console.getIntInput("Product ID: ");
 
-        Response response = target("products/product/{id}").resolveTemplate("id", productId).request(MediaType.APPLICATION_JSON).delete();
+        Response response = target("products/product/{id}")
+                .resolveTemplate("id", productId)
+                .request(MediaType.APPLICATION_JSON)
+                .delete();
 
         if (response.getStatus() != Response.Status.OK.getStatusCode()) {
             Console.action("Failed to remove product");
