@@ -12,6 +12,7 @@ import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 import java.util.Scanner;
 
 public class ApplicationMain {
@@ -48,6 +49,12 @@ public class ApplicationMain {
         while (!action.equals("x")) {
             switch (action) {
                 case "1":
+                    listProducts();
+                    break;
+                case "2":
+                    storeProduct();
+                    break;
+                case "3":
                     storeProduct();
                     break;
                 default:
@@ -68,7 +75,9 @@ public class ApplicationMain {
     private void showMenu() {
         System.out.println("\n\nAVAILABLE ACTIONS:");
         System.out.println("==================================");
-        System.out.println("1: StoreProduct");
+        System.out.println("1: List Products");
+        System.out.println("2: Store Product");
+        System.out.println("3: Get Product");
         System.out.println("x: Exit");
         System.out.println("==================================");
     }
@@ -88,7 +97,6 @@ public class ApplicationMain {
         int customerId = Console.getIntInput("CustomerId: ");
 
         Product product = new Product(name, description, quantity, cooled, customerId);
-
         Response response = request("products/product").post(Entity.json(product));
 
         if (response.getStatus() != Response.Status.OK.getStatusCode()) {
@@ -98,6 +106,12 @@ public class ApplicationMain {
         }
 
         Console.info("Success");
+    }
+
+
+    private void listProducts() {
+        List<Product> products = request("products/all").get(new GenericType<List<Product>>() {});
+        products.stream().forEach(product -> System.out.println(product));
     }
 
 }
