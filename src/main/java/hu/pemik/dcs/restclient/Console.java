@@ -58,6 +58,14 @@ public class Console {
     }
 
     /**
+     * Log message to the Console
+     * @param text
+     */
+    public static void log(String text) {
+        System.out.println(text);
+    }
+
+    /**
      * Clear the console
      */
     public static void clear() {
