@@ -1,34 +1,46 @@
 package hu.pemik.dcs.restclient;
 
-import hu.pemik.dcs.restclient.models.Product;
+import hu.pemik.dcs.restclient.models.Admin;
+import hu.pemik.dcs.restclient.models.Customer;
+import hu.pemik.dcs.restclient.models.User;
+import hu.pemik.dcs.restclient.models.Worker;
 import hu.pemik.dcs.restclient.services.AuthRequestFilter;
 import hu.pemik.dcs.restclient.services.JsonObjectMapperProvider;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.Scanner;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ApplicationMain {
+
+    private static ApplicationMain app;
+
+    private static User user;
+
+    private Map<String, String> routes;
 
     private Client client;
 
     private AuthRequestFilter authFilter;
 
+    public static ApplicationMain access() {
+        return app;
+    }
+
     public static void main(String[] args) {
-        ApplicationMain app = new ApplicationMain();
+        app = new ApplicationMain();
         app.initRestClient(args[0]);
 
-        // TODO: Login & fetch user + actions
-
-        app.start();
+        if (app.login()) {
+            app.run();
+        }
     }
 
     private void initRestClient(String userName) {
@@ -40,105 +52,85 @@ public class ApplicationMain {
         this.authFilter = new AuthRequestFilter(userName);
     }
 
-    private Builder request(String url) {
+    public Builder request(String url) {
         return target(url).request(MediaType.APPLICATION_JSON);
     }
 
-    private WebTarget target(String url) {
+    public WebTarget target(String url) {
         return client.target(Config.REST_SERVER_URL + url).register(authFilter);
     }
 
-    private void start() {
-        String action = getAction();
+    private void run() {
+        try {
 
-        while (!action.equals("x")) {
-            switch (action) {
-                case "1":
-                    listProducts();
-                    break;
-                case "2":
-                    storeProduct();
-                    break;
-                case "3":
-                    takeProduct();
-                    break;
-                default:
-                    System.out.println("Unsupported action: " + action);
+            while (true) {
+                Console.clear();
+                Console.header("Hello " + user.name + "!");
+
+                buildMenu();
+
+                // Get user input
+                String request = Console.getInput();
+                // Exit on 'x'
+                if (request.equals("x")) break;
+
+                // Call controller method if the request is valid
+                dispatch(request);
+
+                Console.waitForEnter();
             }
 
-            action = getAction();
+        } catch (Exception e) {
+            Console.handleException(e);
         }
     }
 
-    private String getAction() {
-        Scanner scanner = new Scanner(System.in);
-        showMenu();
-        System.out.print("Action: ");
-        return scanner.nextLine();
-    }
-
-    private void showMenu() {
-        System.out.println("\n\nAVAILABLE ACTIONS:");
-        System.out.println("==================================");
-        System.out.println("1: List Products");
-        System.out.println("2: Store Product");
-        System.out.println("3: Get Product");
-        System.out.println("x: Exit");
-        System.out.println("==================================");
-    }
+    private void buildMenu() {
+        routes = new HashMap<>();
+        Map<String, String> menu = user.getMenu();
+        String[] actions = Arrays.copyOf(menu.keySet().toArray(), menu.size(), String[].class);
 
 
-    /**
-     * ======================================================================
-     * Product actions
-     * ======================================================================
-     */
+        for (int i = 1; i <= actions.length; i++) {
 
-    private void listProducts() {
-        List<Product> products = request("products/all").get(new GenericType<List<Product>>() {});
+            String label = String.valueOf(i);
+            String action = actions[i - 1];
 
-        if (products.size() == 0) {
-            Console.info("No results found.");
-            return;
+            Console.menu(label, action);
+            routes.put(label, menu.get(action));
+
         }
 
-        products.forEach(System.out::println);
+        System.out.println();
+
+        Console.menu("x", "Exit");
     }
 
-    private void storeProduct() {
-        String name = Console.getInput("Name: ");
-        String description = Console.getInput("Description: ");
-        int quantity = Console.getIntInput("Quantity: ");
-        boolean cooled = Console.getInput("Cooled: ").equals("y");
-        int customerId = Console.getIntInput("CustomerId: ");
+    private void dispatch(String request) throws Exception {
+        String method = routes.get(request);
+        user.call(method);
+    }
 
-        Product product = new Product(name, description, quantity, cooled, customerId);
-        Response response = request("products/product").post(Entity.json(product));
+    private boolean login() {
+        user = request("auth/login").get(new GenericType<User>() {});
+        int userId = user.id;
 
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-            Console.action("Failed to store product");
-            System.out.print(response.toString());
-            return;
+        switch (user.role) {
+            case "admin":
+                user = new Admin(user.name, user.email);
+                break;
+            case "worker":
+                user = new Worker(user.name, user.email);
+                break;
+            case "customer":
+                user = new Customer(user.name, user.email, user.company, user.capacity);
+                break;
+            default:
+                Console.alert("Unknown user: " + user.toString());
+                return false;
         }
 
-        Console.info("Success");
+        user.setId(userId);
+        return true;
     }
-
-    private void takeProduct() {
-        int productId = Console.getIntInput("Product ID: ");
-
-        Response response = target("products/product/{id}")
-                .resolveTemplate("id", productId)
-                .request(MediaType.APPLICATION_JSON)
-                .delete();
-
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-            Console.action("Failed to remove product");
-            System.out.print(response.toString());
-            return;
-        }
-
-        Console.info("Success");
-    }
-
 }
