@@ -85,7 +85,6 @@ public class Worker extends User {
         Warehouse warehouse = ApplicationMain.access().request("warehouse/info").get(new GenericType<Warehouse>() {});
 
         Console.log(warehouse.toString());
-        Console.waitForEnter();
     }
 
     public void modifyCustomerCapacity() {
