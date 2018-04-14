@@ -4,12 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import hu.pemik.dcs.restclient.ApplicationMain;
 import hu.pemik.dcs.restclient.Console;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,19 +29,16 @@ public class Worker extends User {
         menu.put("Store product", "storeProduct");
         menu.put("Get product", "takeProduct");
         menu.put("Show warehouse stat", "showWarehouseStat");
+        menu.put("List customers", "listCustomers");
+        menu.put("Create customer", "createCustomer");
         menu.put("Modify customer capacity", "modifyCustomerCapacity");
 
         return menu;
     }
 
-    public List<String> getAccessList() {
-        return new ArrayList<String>() {{
-            add(HttpMethod.GET + ": products/all");
-            add(HttpMethod.POST + ": products/product");
-            add(HttpMethod.DELETE + ": products/product");
-        }};
-    }
-
+    /**
+     * ACTIONS
+     */
 
     public void storeProduct() {
         String name = Console.getInput("Name: ");
@@ -87,6 +82,41 @@ public class Worker extends User {
         Console.log(warehouse.toString());
     }
 
+    public void listCustomers() {
+        List<Customer> customers = ApplicationMain.access().request("customers/all").get(new GenericType<List<Customer>>() {});
+
+        if (customers.size() == 0) {
+            Console.info("No results found.");
+            return;
+        }
+
+        customers.forEach(System.out::println);
+    }
+
+
+    public void createCustomer() {
+        String name = Console.getInput("Name: ");
+        String email = Console.getInput("Email: ");
+        String company = Console.getInput("Company: ");
+        int capacity = Console.getIntInput("Capacity: ");
+
+        CustomerCreation customer = new CustomerCreation();
+        customer.setName(name);
+        customer.setEmail(email);
+        customer.setCompany(company);
+        customer.setCapacity(capacity);
+
+        Response response = ApplicationMain.access().request("customers/customer").post(Entity.json(customer));
+
+        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+            Console.action("Failed to store customer");
+            System.out.print(response.toString());
+            return;
+        }
+
+        Console.info("Success");
+    }
+
     public void modifyCustomerCapacity() {
         int customerId = Console.getIntInput("Customer ID:");
         int capacity = Console.getIntInput("Requested capacity:");
@@ -125,4 +155,50 @@ class ContractUpdate {
     }
 
 
+}
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+class CustomerCreation {
+
+    String name;
+
+    String email;
+
+    String company;
+
+    int capacity;
+
+    public CustomerCreation() {}
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getCompany() {
+        return company;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
+    }
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
+    }
 }

@@ -1,9 +1,5 @@
 package hu.pemik.dcs.restclient.models;
 
-import javax.ws.rs.HttpMethod;
-import java.util.ArrayList;
-import java.util.List;
-
 public class Customer extends User {
 
     public String company;
@@ -19,12 +15,6 @@ public class Customer extends User {
 
         this.company = company;
         this.capacity = capacity;
-    }
-
-    public List<String> getAccessList() {
-        return new ArrayList<String>() {{
-            add(HttpMethod.GET + ": products/all");
-        }};
     }
 
     public String getCompany() {

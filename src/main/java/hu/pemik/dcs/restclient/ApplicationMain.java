@@ -7,16 +7,20 @@ import hu.pemik.dcs.restclient.models.Worker;
 import hu.pemik.dcs.restclient.services.AuthRequestFilter;
 import hu.pemik.dcs.restclient.services.JsonObjectMapperProvider;
 import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.logging.LoggingFeature;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Feature;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ApplicationMain {
 
@@ -44,9 +48,13 @@ public class ApplicationMain {
     }
 
     private void initRestClient(String userName) {
+        Logger logger = Logger.getLogger(getClass().getName());
+        Feature feature = new LoggingFeature(logger, Level.INFO, null, null);
+
         this.client = ClientBuilder.newBuilder()
                 .register(JsonObjectMapperProvider.class)
                 .register(JacksonFeature.class)
+                .register(feature)
                 .build();
 
         this.authFilter = new AuthRequestFilter(userName);
